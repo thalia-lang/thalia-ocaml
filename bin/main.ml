@@ -18,7 +18,7 @@
 
 open Thalia
 
-let main () : (string, string) Result.t =
+let main () =
   let open Result in
   let* x1 = Ok [1; 2; 3] in
   let+ x2 = Ok [1; 2; 3] in
