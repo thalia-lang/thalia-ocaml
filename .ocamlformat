@@ -1,0 +1,15 @@
+version = 0.27.0
+disabled = true
+profile = default
+margin = 80
+type-decl = sparse
+single-case = sparse
+space-around-lists = false
+space-around-arrays = false
+module-item-spacing = preserve
+match-indent = 2
+let-module = sparse
+let-and = sparse
+infix-precedence = parens
+if-then-else = keyword-first
+doc-comments = before
