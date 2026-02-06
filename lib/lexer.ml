@@ -26,7 +26,7 @@ module Base = struct
 end
 
 include Base
-include Automata.Make(Base)
+include Automaton.Make(Base)
 
 type report = Unknown_char of char
 type 'a result = ('a, report * Span.t) Result.t
