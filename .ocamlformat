@@ -13,3 +13,4 @@ let-and = sparse
 infix-precedence = parens
 if-then-else = keyword-first
 doc-comments = before
+
