@@ -16,38 +16,74 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type state = {
-  input : string;
-  offset : int;
-  line : int;
-  column : int;
-} [@@deriving show]
+module Char = struct
+  let is_whitespace = function
+    | ' ' | '\t' | '\r' | '\n' -> true
+    | _ -> false
 
-module Automaton_base = struct
-  type symbol = char
-  type input = state
+  let is_digit = function
+    | '0'..'9' -> true
+    | _ -> false
+
+  let is_alpha = function
+    | 'a'..'z' | 'A'..'Z' | '_' -> true
+    | _ -> false
+
+  let is_alnum c = is_alpha c || is_digit c
+end
+
+module State = struct
+  type t = {
+    input : string;
+    offset : int;
+    line : int;
+    column : int
+  } [@@deriving show]
+
+  let make src = {
+    input = src;
+    offset = 0;
+    line = 1;
+    column = 1
+  }
+
+  let span_of s1 s2 =
+    Span.make
+      (Location.make s1.offset s1.line s1.column)
+      (Location.make s2.offset s2.line s2.column)
+
+  let string_of s1 s2 =
+    String.sub s1.input s1.offset (s2.offset - s1.offset)
 
   let peek n { input; offset; _ } =
     if offset + n >= String.length input
       then None
       else Some (String.get input (offset + n))
 
-  let advance s =
+  let rest s =
     match peek 0 s with
     | None -> s
-    | Some c when Char.is_eol c ->
+    | Some '\n' ->
       { s with offset = s.offset + 1; column = s.column + 1 }
     | _ ->
       { s with offset = s.offset + 1; line = s.line + 1; column = 1 }
+
+  module Stream_base = struct
+    type value = char
+    type input = t
+
+    let peek = peek
+    let rest = rest
+  end
+  include Stream.Make(Stream_base)
 end
-include Automaton.Make(Automaton_base)
 
-module Map = Map.Make(String)
+module StringMap = Map.Make(String)
 
-let keyword_tokens : (Span.t -> Token.t) Map.t
-  = Map.of_list []
+let keyword_tokens : (Span.t -> Token.t) StringMap.t
+  = StringMap.of_list []
 
-let base_tokens = Map.of_list [
+let base_tokens = StringMap.of_list [
   "-", (fun s -> Token.Minus s);
   "+", (fun s -> Token.Plus s);
   "/", (fun s -> Token.Div s);
@@ -89,57 +125,41 @@ let base_tokens = Map.of_list [
   ":", (fun s -> Token.Colon s);
 ]
 
-let make src = {
-  input = src;
-  offset = 0;
-  line = 1;
-  column = 1;
-}
-
-let span s1 s2 =
-  Span.make
-    (Location.make s1.offset s1.line s1.column)
-    (Location.make s2.offset s2.line s2.column)
-
-let value s1 s2 =
-  String.sub s1.input s1.offset (s2.offset - s1.offset)
-
 let scan_space s =
-  let s' = skip_while Char.is_whitespace s in
-  s', Token.Space (span s s')
+  let s' = State.skip_while Char.is_whitespace s in
+  s', Token.Space (State.span_of s s')
 
 let scan_comment s =
-  let pred c = not (Char.is_eol c) in
-  let s' = skip_while pred s in
-  s', Token.Comment (span s s')
+  let s' = State.skip_while (( <> ) '\n') s in
+  s', Token.Comment (State.span_of s s')
 
 let scan_int s =
-  let s' = skip_while Char.is_digit s in
-  let v = value s s' in
-  s', Token.Int ((span s s'), Int64.of_string v)
+  let s' = State.skip_while Char.is_digit s in
+  let v = State.string_of s s' |> Int64.of_string in
+  s', Token.Int ((State.span_of s s'), v)
 
 let scan_id s =
-  let s' = skip_while Char.is_digit s in
-  let v = value s s' in
-  match Map.find_opt v keyword_tokens with
-  | Some f -> s', f (span s s')
-  | None -> s', Token.Id ((span s s'), v)
+  let s' = State.skip_while Char.is_alnum s in
+  let v = State.string_of s s' in
+  match StringMap.find_opt v keyword_tokens with
+  | Some f -> s', f (State.span_of s s')
+  | None -> s', Token.Id ((State.span_of s s'), v)
 
 let rec scan_base max_size s =
-  let s' = skip max_size s in
-  let v = value s s' in
-  match Map.find_opt v base_tokens with
-  | Some f -> s', f (span s s')
-  | None when max_size = 1 -> s', Token.Unknown (span s s')
+  let s' = State.skip max_size s in
+  let v = State.string_of s s' in
+  match StringMap.find_opt v base_tokens with
+  | Some f -> s', f (State.span_of s s')
+  | None when max_size = 1 -> s', Token.Unknown (State.span_of s s')
   | None -> scan_base (max_size - 1) s
 
 let scan_next s =
-  match first s with
-  | None -> s, Token.Eof (span s s)
+  match State.first s with
+  | None -> s, Token.Eof (State.span_of s s)
   | Some c when Char.is_digit c -> scan_int s
   | Some c when Char.is_alpha c -> scan_id s
   | Some c when Char.is_whitespace c -> scan_space s
-  | Some '/' when peek 1 s = Some '/' -> scan_comment s
+  | Some '/' when State.peek 1 s = Some '/' -> scan_comment s
   | _ -> scan_base 3 s
 
 let scan pred src =
@@ -148,11 +168,11 @@ let scan pred src =
   in
   let rec aux acc s =
     let s', t = scan_next s in
-    match first s with
+    match State.first s with
     | None -> List.rev (cons acc t)
     | _ -> aux (cons acc t) s'
   in
-  aux [] (make src)
+  aux [] (State.make src)
 
 let scan_all = scan (fun _ -> true)
 

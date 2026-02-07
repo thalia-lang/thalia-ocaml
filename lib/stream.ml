@@ -17,38 +17,38 @@
  *)
 
 module type BASE = sig
-  type symbol
+  type value
   type input
 
-  val peek : int -> input -> symbol option
-  val advance : input -> input
+  val peek : int -> input -> value option
+  val rest : input -> input
 end
 
 module type T = sig
   include BASE
 
-  val first : input -> symbol option
+  val first : input -> value option
 
   val skip : int -> input -> input
-  val skip_while : (symbol -> bool) -> input -> input
+  val skip_while : (value -> bool) -> input -> input
 end
 
 module Make(M : BASE) = struct
-  type symbol = M.symbol
+  type value = M.value
   type input = M.input
 
   let peek = M.peek
   let first = peek 0
 
-  let advance = M.advance
+  let rest = M.rest
 
   let rec skip n s =
-    if n = 0 then s else skip (n - 1) (advance s)
+    if n = 0 then s else skip (n - 1) (rest s)
 
   let rec skip_while pred s =
     match first s with
     | None -> s
     | Some c when c |> pred |> not -> s
-    | _ -> skip_while pred (advance s)
+    | _ -> skip_while pred (rest s)
 end
 
