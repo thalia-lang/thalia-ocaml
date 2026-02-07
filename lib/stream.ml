@@ -16,12 +16,35 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-val eof : char
+module type BASE = sig
+  type value
+  type input
 
-val is_eof : char -> bool
-val is_eol : char -> bool
-val is_whitespace : char -> bool
-val is_digit : char -> bool
-val is_alpha : char -> bool
-val is_alnum : char -> bool
+  val peek : int -> input -> value option
+  val rest : input -> input
+end
+
+module type T = sig
+  include BASE
+
+  val first : input -> value option
+
+  val skip : int -> input -> input
+  val skip_while : (value -> bool) -> input -> input
+end
+
+module Make(M : BASE) = struct
+  include M
+
+  let first = peek 0
+
+  let rec skip n s =
+    if n = 0 then s else skip (n - 1) (rest s)
+
+  let rec skip_while pred s =
+    match first s with
+    | None -> s
+    | Some c when c |> pred |> not -> s
+    | _ -> skip_while pred (rest s)
+end
 

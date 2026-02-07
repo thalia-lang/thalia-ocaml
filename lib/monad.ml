@@ -16,22 +16,32 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-let eof = '\000'
+module type BASE = sig
+  type 'a t
 
-let is_eof = ( = ) eof
-let is_eol = ( = ) '\n'
+  val pure : 'a -> 'a t
+  val bind : 'a t -> ('a -> 'b t) -> 'b t
+end
 
-let is_whitespace = function
-  | ' ' | '\t' | '\r' | '\n' -> true
-  | _ -> false
+module type T = sig
+  include BASE
 
-let is_digit = function
-  | '0'..'9' -> true
-  | _ -> false
+  val ( let* ) : 'a t -> ('a -> 'b t) -> 'b t
 
-let is_alpha = function
-  | 'a'..'z' | 'A'..'Z' | '_' -> true
-  | _ -> false
+  val map : 'a t -> ('a -> 'b) -> 'b t
+  val ( let+ ) : 'a t -> ('a -> 'b) -> 'b t
 
-let is_alnum c = is_alpha c || is_digit c
+  val join : 'a t t -> 'a t
+end
+
+module Make(M : BASE) = struct
+  include M
+
+  let ( let* ) = bind
+
+  let map m f = bind m (fun x -> pure (f x))
+  let ( let+ ) = map
+
+  let join rr = bind rr (fun r -> r)
+end
 

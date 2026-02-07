@@ -17,24 +17,23 @@
  *)
 
 module type BASE = sig
-  type error
+  type 'a t
+
+  val pure : 'a -> 'a t
+  val bind : 'a t -> ('a -> 'b t) -> 'b t
 end
 
 module type T = sig
   include BASE
 
-  type 'a self =
-    | Ok of 'a list
-    | Error of error list
+  val ( let* ) : 'a t -> ('a -> 'b t) -> 'b t
 
-  include Monad.T with type 'a t = 'a self
+  val map : 'a t -> ('a -> 'b) -> 'b t
+  val ( let+ ) : 'a t -> ('a -> 'b) -> 'b t
 
-  val zero : 'a t
-  val fail : error -> 'a t
-
-  val concat : 'a t -> 'a t -> 'a t
-  val ( <+> ) : 'a t -> 'a t -> 'a t
+  val join : 'a t t -> 'a t
 end
 
-module Make : functor (M: BASE) -> T with type error = M.error
+module Make : functor (M: BASE) -> T
+  with type 'a t = 'a M.t
 
