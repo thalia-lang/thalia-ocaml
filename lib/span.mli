@@ -32,3 +32,5 @@ val line2 : t -> int
 val column1 : t -> int
 val column2 : t -> int
 
+val merge : t -> t -> t
+

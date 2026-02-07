@@ -34,3 +34,6 @@ let line2 = second >> Location.line
 let column1 = first >> Location.column
 let column2 = second >> Location.column
 
+let merge (l11, l12) (l21, l22) =
+  (Location.min l11 l21), (Location.max l12 l22)
+

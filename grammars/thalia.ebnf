@@ -1,0 +1,52 @@
+type = ID;
+
+value = value_unary;
+value_unary = (MINUS | PLUS | LOG_NOT | BIT_NOT) value_unary
+            | value_primary;
+value_primary = LPAREN value RPAREN
+              | ID
+              | INT;
+
+(*** TOKENS ***)
+ID = '[_a-zA-Z][_a-zA-Z0-9]*';
+INT = '[0-9]+';
+SUB = '-';
+ADD = '+';
+MUL = '*';
+DIV = '/';
+MOD = '%';
+LESS = '<';
+LESS_EQU = '<=';
+GRT = '>';
+GRT_EQU = '>=';
+EQUAL = '==';
+NOT_EQUAL = '!=';
+RSHIFT = '>>';
+LSHIFT = '<<';
+LOG_AND = '&&';
+LOG_OR = '||';
+BIT_NOT = '~';
+BIT_AND = '&';
+BIT_OR = '|';
+BIT_XOR = '^';
+ASSIGN = '=';
+SUB_ASSIGN = '-=';
+ADD_ASSIGN = '+=';
+MUL_ASSIGN = '*=';
+DIV_ASSIGN = '/=';
+MOD_ASSIGN = '%=';
+AND_ASSIGN = '&=';
+OR_ASSIGN = '|=';
+XOR_ASSIGN = '^=';
+RSH_ASSIGN = '>>=';
+LSH_ASSIGN = '<<=';
+LPAREN = '(';
+RPAREN = ')';
+LBRACE = '{';
+RBRACE = '}';
+LBRACKET = '[';
+RBRACKET = ']';
+COMMA = ',';
+SEMI = ';';
+COLON = ':';
+
