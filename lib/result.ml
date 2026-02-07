@@ -16,49 +16,53 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type ('a, 'e) t =
-  | Ok of 'a list
-  | Error of 'e list
-  [@@deriving show]
+module type BASE = sig
+  type error
+end
 
-let zero = Ok []
-let pure x = Ok [x]
-let fail e = Error [e]
+module type T = sig
+  include BASE
 
-let%test _ = Ok [] = zero
-let%test _ = Ok [2] = pure 2
-let%test _ = Error ["1"] = fail "1"
+  type 'a self =
+    | Ok of 'a list
+    | Error of error list
 
-let concat r1 r2 =
-  match (r1, r2) with
-  | Ok xs1, Ok xs2 -> Ok (xs1 @ xs2)
-  | Error es1, Error es2 -> Error (es1 @ es2)
-  | Error es, _ | _, Error es -> Error es
-let ( <+> ) = concat
+  include Monad.T with type 'a t = 'a self
 
-let%test _ = Ok [1; 2; 3] = (Ok [1; 2] <+> Ok [3])
-let%test _ = Error ["x"] = (Ok [1; 2] <+> Error ["x"])
-let%test _ = Error ["x"] = (Error ["x"] <+> Ok [3])
-let%test _ = Error ["x"; "y"] = (Error ["x"] <+> Error ["y"])
+  val zero : 'a t
+  val fail : error -> 'a t
 
-let bind r f =
-  match r with
-  | Error es -> Error es
-  | Ok xs -> xs |> List.map f |> List.fold_left concat zero
-let ( let* ) = bind
+  val concat : 'a t -> 'a t -> 'a t
+  val ( <+> ) : 'a t -> 'a t -> 'a t
+end
 
-let%test _ = Ok [3] = bind (Ok [3]) pure
-let%test _ = Error ["x"] = bind (Error ["x"]) pure
+module Make(M: BASE) = struct
+  type error = M.error
 
-let map r f = bind r (fun x -> pure (f x))
-let ( let+ ) = map
+  type 'a self =
+    | Ok of 'a list
+    | Error of error list
 
-let%test _ = Ok [4] = map (Ok [3]) (fun x -> x + 1)
-let%test _ = Error ["x"] = map (Error ["x"]) (fun x -> x + 1)
+  let zero = Ok []
+  let fail e = Error [e]
 
-let join rr = bind rr (fun r -> r)
+  let concat r1 r2 =
+    match (r1, r2) with
+    | Ok xs1, Ok xs2 -> Ok (xs1 @ xs2)
+    | Error es1, Error es2 -> Error (es1 @ es2)
+    | Error es, _ | _, Error es -> Error es
+  let ( <+> ) = concat
 
-let%test _ = Ok [3; 5; 6] = (Ok [3; 5; 6] |> pure |> join)
-let%test _ = Error ["x"] = (Error ["x"] |> join)
-let%test _ = Error ["x"] = (Error ["x"] |> pure |> join)
+  module Monad_base = struct
+    type 'a t = 'a self
+
+    let pure x = Ok [x]
+    let bind r f =
+      match r with
+      | Error es -> Error es
+      | Ok xs -> xs |> List.map f |> List.fold_left concat zero
+  end
+
+  include Monad.Make(Monad_base)
+end
 
