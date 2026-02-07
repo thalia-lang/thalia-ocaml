@@ -80,14 +80,14 @@ let make src = {
 
 let peek n { input; offset; _ } =
   if offset + n >= String.length input
-    then '\000'
+    then Char.eof
     else String.get input (offset + n)
 
-let current = peek 0
+let get = peek 0
 
 let advance = function
-  | s when s.offset >= String.length s.input -> s
-  | s when current s <> '\n' ->
+  | s when s |> get |> Char.is_eof -> s
+  | s when s |> get |> Char.is_eol |> not ->
     { s with offset = s.offset + 1; column = s.column + 1; }
   | s ->
     { s with offset = s.offset + 1; line = s.line + 1; column = 1; }
@@ -100,43 +100,30 @@ let span s1 s2 =
 let value s1 s2 =
   String.sub s1.input s1.offset (s2.offset - s1.offset)
 
-let is_whitespace = function
-  | ' ' | '\t' | '\r' | '\n' -> true
-  | _ -> false
-
-let is_digit = function
-  | '0'..'9' -> true
-  | _ -> false
-
-let is_alpha = function
-  | 'a'..'z' | 'A'..'Z' | '_' -> true
-  | _ -> false
-
-let is_alnum c = is_alpha c || is_digit c
-
 let rec skip n s =
   if n = 0 then s else skip (n - 1) (advance s)
 
 let rec skip_while pred s =
-  if not (pred (current s))
+  if s |> get |> pred |> not
     then s
     else skip_while pred (advance s)
 
 let scan_space s =
-  let s' = skip_while is_whitespace s in
+  let s' = skip_while Char.is_whitespace s in
   s', Token.Space (span s s')
 
-let scan_comment_base s =
-  let s' = skip_while (fun c -> c <> '\n' && c <> '\000') s in
-  s', Token.Comment_base (span s s')
+let scan_comment s =
+  let pred c = not (Char.is_eof c || Char.is_eol c) in
+  let s' = skip_while pred s in
+  s', Token.Comment (span s s')
 
 let scan_int s =
-  let s' = skip_while is_digit s in
+  let s' = skip_while Char.is_digit s in
   let v = value s s' in
   s', Token.Int ((span s s'), Int64.of_string v)
 
 let scan_id s =
-  let s' = skip_while is_digit s in
+  let s' = skip_while Char.is_digit s in
   let v = value s s' in
   match Map.find_opt v keyword_tokens with
   | Some f -> s', f (span s s')
@@ -151,19 +138,25 @@ let rec scan_base max_size s =
   | None -> scan_base (max_size - 1) s
 
 let scan_next s =
-  match current s with
-  | '\000' -> s, Token.Eof (span s s)
-  | c when is_digit c -> scan_int s
-  | c when is_alpha c -> scan_id s
-  | c when is_whitespace c -> scan_space s
-  | '/' when peek 1 s = '/' -> scan_comment_base s
+  match get s with
+  | c when Char.is_eof c -> s, Token.Eof (span s s)
+  | c when Char.is_digit c -> scan_int s
+  | c when Char.is_alpha c -> scan_id s
+  | c when Char.is_whitespace c -> scan_space s
+  | '/' when peek 1 s = '/' -> scan_comment s
   | _ -> scan_base 3 s
 
-let scan_all src =
+let scan pred src =
+  let cons acc t =
+    if pred t then t :: acc else acc
+  in
   let rec aux acc s =
-    match scan_next s with
-    | _, Token.Eof sp -> List.rev ((Token.Eof sp) :: acc)
-    | s', t -> aux (t :: acc) s'
+    let s', t = scan_next s in
+    match get s with
+    | c when Char.is_eof c -> List.rev (cons acc t)
+    | _ -> aux (cons acc t) s'
   in
   aux [] (make src)
+
+let scan_all = scan (fun _ -> true)
 

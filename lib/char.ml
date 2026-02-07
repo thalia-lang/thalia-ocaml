@@ -16,16 +16,22 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Thalia
+let eof = '\000'
 
-let filter = function
-  | Token.Space _ | Token.Comment _ | Token.Eof _ -> false
-  | _ -> true
+let is_eof = ( = ) eof
+let is_eol = ( = ) '\n'
 
-let () =
-  "\n\n    \n// Hello World!\n 4 + 6  \n"
-  |> Lexer.scan filter
-  |> List.map Token.show
-  |> String.concat "\n"
-  |> print_endline
+let is_whitespace = function
+  | ' ' | '\t' | '\r' | '\n' -> true
+  | _ -> false
+
+let is_digit = function
+  | '0'..'9' -> true
+  | _ -> false
+
+let is_alpha = function
+  | 'a'..'z' | 'A'..'Z' | '_' -> true
+  | _ -> false
+
+let is_alnum c = is_alpha c || is_digit c
 

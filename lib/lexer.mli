@@ -16,16 +16,6 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Thalia
-
-let filter = function
-  | Token.Space _ | Token.Comment _ | Token.Eof _ -> false
-  | _ -> true
-
-let () =
-  "\n\n    \n// Hello World!\n 4 + 6  \n"
-  |> Lexer.scan filter
-  |> List.map Token.show
-  |> String.concat "\n"
-  |> print_endline
+val scan : (Token.t -> bool) -> string -> Token.t list
+val scan_all : string -> Token.t list
 

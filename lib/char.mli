@@ -16,16 +16,12 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Thalia
+val eof : char
 
-let filter = function
-  | Token.Space _ | Token.Comment _ | Token.Eof _ -> false
-  | _ -> true
-
-let () =
-  "\n\n    \n// Hello World!\n 4 + 6  \n"
-  |> Lexer.scan filter
-  |> List.map Token.show
-  |> String.concat "\n"
-  |> print_endline
+val is_eof : char -> bool
+val is_eol : char -> bool
+val is_whitespace : char -> bool
+val is_digit : char -> bool
+val is_alpha : char -> bool
+val is_alnum : char -> bool
 

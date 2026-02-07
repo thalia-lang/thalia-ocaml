@@ -58,9 +58,7 @@ type t = Id of Span.t * string
        | Semi of Span.t
        | Colon of Span.t
        | Space of Span.t
-       | Comment_base of Span.t
-       | Comment_multi of Span.t
-       | Comment_doc of Span.t
+       | Comment of Span.t
        | Eof of Span.t
        | Unknown of Span.t
        [@@deriving show]
