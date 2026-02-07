@@ -17,6 +17,7 @@
  *)
 
 type t
+[@@deriving show]
 
 val make : Location.t -> Location.t -> t
 

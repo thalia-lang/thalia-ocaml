@@ -21,6 +21,7 @@ type t = {
   line : int;
   column : int;
 }
+[@@deriving show]
 
 let make offset line column = { offset; line; column }
 

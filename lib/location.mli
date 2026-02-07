@@ -17,6 +17,7 @@
  *)
 
 type t
+[@@deriving show]
 
 val make : int -> int -> int -> t
 

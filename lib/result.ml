@@ -19,6 +19,7 @@
 type ('a, 'e) t =
   | Ok of 'a list
   | Error of 'e list
+  [@@deriving show]
 
 let zero = Ok []
 let pure x = Ok [x]

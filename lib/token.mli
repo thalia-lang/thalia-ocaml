@@ -63,4 +63,5 @@ type t = Id of Span.t * string
        | Comment_doc of Span.t
        | Eof of Span.t
        | Unknown of Span.t
+       [@@deriving show]
 

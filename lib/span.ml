@@ -17,6 +17,7 @@
  *)
 
 type t = Location.t * Location.t
+[@@deriving show]
 
 let ( >> ) g f x = f (g x)
 

@@ -32,6 +32,7 @@
 type ('a, 'e) t =
   | Ok of 'a list
   | Error of 'e list
+  [@@deriving show]
 
 (** [zero] represents a computation with no results (empty success). *)
 val zero : ('a, 'e) t

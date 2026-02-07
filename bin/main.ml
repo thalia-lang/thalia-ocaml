@@ -18,26 +18,10 @@
 
 open Thalia
 
-let main () =
-  let open Result in
-  let* x1 = Ok [6; 4; 2] in
-  let* x2 = Ok [2; 1; 0] in
-  match x2 with
-  | 0 -> Format.sprintf "%d divided by 0" x1 |> fail
-  | _ -> x1 / x2 |> string_of_int |> pure
-
 let () =
-  match main () with
-  | Result.Ok xs ->
-      xs
-      |> List.map (fun s -> "'" ^ s ^ "'")
-      |> String.concat ", "
-      |> (fun s -> ">> Values: " ^ s)
-      |> print_endline
-  | Result.Error es ->
-      es
-      |> List.map (fun s -> "'" ^ s ^ "'")
-      |> String.concat ", "
-      |> (fun s -> ">> Errors: " ^ s)
-      |> print_endline
+  "\n\n    \n// Hello World!\n 4 + 6  \n"
+  |> Lexer.scan_all
+  |> List.map Token.show
+  |> String.concat "\n"
+  |> print_endline
 
