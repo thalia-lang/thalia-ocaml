@@ -34,13 +34,9 @@ module type T = sig
 end
 
 module Make(M : BASE) = struct
-  type value = M.value
-  type input = M.input
+  include M
 
-  let peek = M.peek
   let first = peek 0
-
-  let rest = M.rest
 
   let rec skip n s =
     if n = 0 then s else skip (n - 1) (rest s)

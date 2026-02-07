@@ -34,5 +34,6 @@ module type T = sig
   val join : 'a t t -> 'a t
 end
 
-module Make : functor (M: BASE) -> T with type 'a t = 'a M.t
+module Make : functor (M: BASE) -> T
+  with type 'a t = 'a M.t
 

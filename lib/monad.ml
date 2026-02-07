@@ -35,11 +35,8 @@ module type T = sig
 end
 
 module Make(M : BASE) = struct
-  type 'a t = 'a M.t
+  include M
 
-  let pure = M.pure
-
-  let bind = M.bind
   let ( let* ) = bind
 
   let map m f = bind m (fun x -> pure (f x))
