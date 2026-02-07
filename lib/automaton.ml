@@ -22,8 +22,7 @@ end
 
 module type T = sig
   include BASE
-  include Monad.T with
-    type 'a t = state -> 'a * state
+  include Monad.T with type 'a t = state -> 'a * state
 end
 
 module Make(M : BASE) = struct
