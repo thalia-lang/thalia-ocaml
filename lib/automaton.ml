@@ -17,27 +17,38 @@
  *)
 
 module type BASE = sig
-  type state
+  type symbol
+  type input
+
+  val peek : int -> input -> symbol option
+  val advance : input -> input
 end
 
 module type T = sig
   include BASE
-  include Monad.T with type 'a t = state -> 'a * state
+
+  val first : input -> symbol option
+
+  val skip : int -> input -> input
+  val skip_while : (symbol -> bool) -> input -> input
 end
 
 module Make(M : BASE) = struct
-  type state = M.state
+  type symbol = M.symbol
+  type input = M.input
 
-  module Monad_base = struct
-    type 'a t = state -> 'a * state
+  let peek = M.peek
+  let first = peek 0
 
-    let pure x = fun s -> (x, s)
-    let bind m f =
-      fun s ->
-        let x, s' = m s in
-        f x s'
-  end
+  let advance = M.advance
 
-  include Monad.Make(Monad_base)
+  let rec skip n s =
+    if n = 0 then s else skip (n - 1) (advance s)
+
+  let rec skip_while pred s =
+    match first s with
+    | None -> s
+    | Some c when c |> pred |> not -> s
+    | _ -> skip_while pred (advance s)
 end
 

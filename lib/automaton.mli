@@ -17,13 +17,23 @@
  *)
 
 module type BASE = sig
-  type state
+  type symbol
+  type input
+
+  val peek : int -> input -> symbol option
+  val advance : input -> input
 end
 
 module type T = sig
   include BASE
-  include Monad.T with type 'a t = state -> 'a * state
+
+  val first : input -> symbol option
+
+  val skip : int -> input -> input
+  val skip_while : (symbol -> bool) -> input -> input
 end
 
-module Make : functor (M : BASE) -> T with type state = M.state
+module Make : functor (M : BASE) -> T
+  with type symbol = M.symbol
+  with type input = M.input
 

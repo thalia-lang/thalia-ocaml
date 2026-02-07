@@ -16,15 +16,33 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-module Map = Map.Make(String)
+type state = {
+  input : string;
+  offset : int;
+  line : int;
+  column : int;
+} [@@deriving show]
 
-type t = {
-  input: string;
-  offset: int;
-  line: int;
-  column: int;
-}
-[@@deriving show]
+module Automaton_base = struct
+  type symbol = char
+  type input = state
+
+  let peek n { input; offset; _ } =
+    if offset + n >= String.length input
+      then None
+      else Some (String.get input (offset + n))
+
+  let advance s =
+    match peek 0 s with
+    | None -> s
+    | Some c when Char.is_eol c ->
+      { s with offset = s.offset + 1; column = s.column + 1 }
+    | _ ->
+      { s with offset = s.offset + 1; line = s.line + 1; column = 1 }
+end
+include Automaton.Make(Automaton_base)
+
+module Map = Map.Make(String)
 
 let keyword_tokens : (Span.t -> Token.t) Map.t
   = Map.of_list []
@@ -78,20 +96,6 @@ let make src = {
   column = 1;
 }
 
-let peek n { input; offset; _ } =
-  if offset + n >= String.length input
-    then Char.eof
-    else String.get input (offset + n)
-
-let get = peek 0
-
-let advance = function
-  | s when s |> get |> Char.is_eof -> s
-  | s when s |> get |> Char.is_eol |> not ->
-    { s with offset = s.offset + 1; column = s.column + 1; }
-  | s ->
-    { s with offset = s.offset + 1; line = s.line + 1; column = 1; }
-
 let span s1 s2 =
   Span.make
     (Location.make s1.offset s1.line s1.column)
@@ -100,20 +104,12 @@ let span s1 s2 =
 let value s1 s2 =
   String.sub s1.input s1.offset (s2.offset - s1.offset)
 
-let rec skip n s =
-  if n = 0 then s else skip (n - 1) (advance s)
-
-let rec skip_while pred s =
-  if s |> get |> pred |> not
-    then s
-    else skip_while pred (advance s)
-
 let scan_space s =
   let s' = skip_while Char.is_whitespace s in
   s', Token.Space (span s s')
 
 let scan_comment s =
-  let pred c = not (Char.is_eof c || Char.is_eol c) in
+  let pred c = not (Char.is_eol c) in
   let s' = skip_while pred s in
   s', Token.Comment (span s s')
 
@@ -138,12 +134,12 @@ let rec scan_base max_size s =
   | None -> scan_base (max_size - 1) s
 
 let scan_next s =
-  match get s with
-  | c when Char.is_eof c -> s, Token.Eof (span s s)
-  | c when Char.is_digit c -> scan_int s
-  | c when Char.is_alpha c -> scan_id s
-  | c when Char.is_whitespace c -> scan_space s
-  | '/' when peek 1 s = '/' -> scan_comment s
+  match first s with
+  | None -> s, Token.Eof (span s s)
+  | Some c when Char.is_digit c -> scan_int s
+  | Some c when Char.is_alpha c -> scan_id s
+  | Some c when Char.is_whitespace c -> scan_space s
+  | Some '/' when peek 1 s = Some '/' -> scan_comment s
   | _ -> scan_base 3 s
 
 let scan pred src =
@@ -152,8 +148,8 @@ let scan pred src =
   in
   let rec aux acc s =
     let s', t = scan_next s in
-    match get s with
-    | c when Char.is_eof c -> List.rev (cons acc t)
+    match first s with
+    | None -> List.rev (cons acc t)
     | _ -> aux (cons acc t) s'
   in
   aux [] (make src)
