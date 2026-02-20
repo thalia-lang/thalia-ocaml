@@ -20,8 +20,7 @@ type t = {
   offset : int;
   line : int;
   column : int;
-}
-[@@deriving show]
+} [@@deriving show]
 
 let make offset line column = { offset; line; column }
 
