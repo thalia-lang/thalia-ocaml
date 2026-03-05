@@ -33,13 +33,17 @@ module type T = sig
   val skip_while : (value -> bool) -> input -> input
 end
 
-module Make(M : BASE) = struct
+module Make(M : BASE) : T
+  with type value = M.value
+  with type input = M.input = struct
   include M
 
   let first = peek 0
 
   let rec skip n s =
-    if n = 0 then s else skip (n - 1) (rest s)
+    match n with
+    | 0 -> s
+    | _ -> skip (n - 1) (rest s)
 
   let rec skip_while pred s =
     match first s with

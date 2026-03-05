@@ -38,6 +38,7 @@ Before building Thalia, ensure you have the following installed:
 ### Installing Prerequisites
 
 **Using OPAM (recommended):**
+
 ```bash
 # Install OPAM if not already installed
 # See: https://opam.ocaml.org/doc/Install.html
@@ -140,4 +141,3 @@ Thalia is free software: you can redistribute it and/or modify it under the term
 ## Authors
 
 **Stan Vlad** - [vstan02@protonmail.com](mailto:vstan02@protonmail.com)
-

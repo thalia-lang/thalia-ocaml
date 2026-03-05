@@ -17,31 +17,23 @@
  *)
 
 module type BASE = sig
-  type 'a t
+  type value
+  type input
 
-  val pure : 'a -> 'a t
-  val bind : 'a t -> ('a -> 'b t) -> 'b t
+  val peek : int -> input -> value option
+  val rest : input -> input
 end
 
 module type T = sig
   include BASE
 
-  val ( let* ) : 'a t -> ('a -> 'b t) -> 'b t
+  val first : input -> value option
 
-  val map : 'a t -> ('a -> 'b) -> 'b t
-  val ( let+ ) : 'a t -> ('a -> 'b) -> 'b t
-
-  val join : 'a t t -> 'a t
+  val skip : int -> input -> input
+  val skip_while : (value -> bool) -> input -> input
 end
 
-module Make(M : BASE) = struct
-  include M
-
-  let ( let* ) = bind
-
-  let map m f = bind m (fun x -> pure (f x))
-  let ( let+ ) = map
-
-  let join rr = bind rr (fun r -> r)
-end
+module Make : functor (M : BASE) -> T
+  with type value := M.value
+  with type input := M.input
 
