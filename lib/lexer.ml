@@ -80,82 +80,81 @@ end
 
 module StringMap = Map.Make(String)
 
-let keyword_tokens : (Span.t -> Token.t) StringMap.t
+let keyword_tokens : Token.kind StringMap.t
   = StringMap.of_list []
 
 let base_tokens = StringMap.of_list [
-  "-", (fun s -> Token.Minus s);
-  "+", (fun s -> Token.Plus s);
-  "/", (fun s -> Token.Div s);
-  "*", (fun s -> Token.Mul s);
-  "%", (fun s -> Token.Mod s);
-  "<", (fun s -> Token.Less s);
-  "<=", (fun s -> Token.Less_equ s);
-  ">", (fun s -> Token.Grt s);
-  ">=", (fun s -> Token.Grt_equ s);
-  "==", (fun s -> Token.Equ s);
-  "!=", (fun s -> Token.Not_equ s);
-  ">>", (fun s -> Token.Rshift s);
-  "<<", (fun s -> Token.Lshift s);
-  "&&", (fun s -> Token.Log_and s);
-  "||", (fun s -> Token.Log_or s);
-  "~", (fun s -> Token.Bit_not s);
-  "&", (fun s -> Token.Bit_and s);
-  "|", (fun s -> Token.Bit_or s);
-  "^", (fun s -> Token.Bit_xor s);
-  "=", (fun s -> Token.Assign s);
-  "-=", (fun s -> Token.Assign_sub s);
-  "+=", (fun s -> Token.Assign_add s);
-  "*=", (fun s -> Token.Assign_mul s);
-  "/=", (fun s -> Token.Assign_div s);
-  "%=", (fun s -> Token.Assign_mod s);
-  "&=", (fun s -> Token.Assign_and s);
-  "|=", (fun s -> Token.Assign_or s);
-  "^=", (fun s -> Token.Assign_xor s);
-  "<<=", (fun s -> Token.Assign_lsh s);
-  ">>=", (fun s -> Token.Assign_rsh s);
-  "(", (fun s -> Token.Lparen s);
-  ")", (fun s -> Token.Rparen s);
-  "{", (fun s -> Token.Lbrace s);
-  "}", (fun s -> Token.Rbrace s);
-  "[", (fun s -> Token.Lbracket s);
-  "]", (fun s -> Token.Rbracket s);
-  ",", (fun s -> Token.Comma s);
-  ";", (fun s -> Token.Semi s);
-  ":", (fun s -> Token.Colon s);
+  "-", Token.Minus;
+  "+", Token.Plus;
+  "/", Token.Div;
+  "*", Token.Mul;
+  "%", Token.Mod;
+  "<", Token.Less;
+  "<=", Token.Less_equ;
+  ">", Token.Grt;
+  ">=", Token.Grt_equ;
+  "==", Token.Equ;
+  "!=", Token.Not_equ;
+  ">>", Token.Rshift;
+  "<<", Token.Lshift;
+  "&&", Token.Log_and;
+  "||", Token.Log_or;
+  "~", Token.Bit_not;
+  "&", Token.Bit_and;
+  "|", Token.Bit_or;
+  "^", Token.Bit_xor;
+  "=", Token.Assign;
+  "-=", Token.Assign_sub;
+  "+=", Token.Assign_add;
+  "*=", Token.Assign_mul;
+  "/=", Token.Assign_div;
+  "%=", Token.Assign_mod;
+  "&=", Token.Assign_and;
+  "|=", Token.Assign_or;
+  "^=", Token.Assign_xor;
+  "<<=", Token.Assign_lsh;
+  ">>=", Token.Assign_rsh;
+  "(", Token.Lparen;
+  ")", Token.Rparen;
+  "{", Token.Lbrace;
+  "}", Token.Rbrace;
+  "[", Token.Lbracket;
+  "]", Token.Rbracket;
+  ",", Token.Comma;
+  ";", Token.Semi;
+  ":", Token.Colon;
 ]
 
 let scan_space s =
   let s' = State.skip_while Char.is_whitespace s in
-  s', Token.Space (State.span_of s s')
+  s', (Token.Space, State.span_of s s')
 
 let scan_comment s =
   let s' = State.skip_while (( <> ) '\n') s in
-  s', Token.Comment (State.span_of s s')
+  s', (Token.Comment, State.span_of s s')
 
 let scan_int s =
   let s' = State.skip_while Char.is_digit s in
-  let v = State.string_of s s' |> Int64.of_string in
-  s', Token.Int ((State.span_of s s'), v)
+  s', (Token.Int, State.span_of s s')
 
 let scan_id s =
   let s' = State.skip_while Char.is_alnum s in
   let v = State.string_of s s' in
   match StringMap.find_opt v keyword_tokens with
-  | Some f -> s', f (State.span_of s s')
-  | None -> s', Token.Id ((State.span_of s s'), v)
+  | Some k -> s', (k, State.span_of s s')
+  | None -> s', (Token.Id, State.span_of s s')
 
 let rec scan_base max_size s =
   let s' = State.skip max_size s in
   let v = State.string_of s s' in
   match StringMap.find_opt v base_tokens with
-  | Some f -> s', f (State.span_of s s')
-  | None when max_size = 1 -> s', Token.Unknown (State.span_of s s')
+  | Some k -> s', (k, State.span_of s s')
+  | None when max_size = 1 -> s', (Token.Unknown, State.span_of s s')
   | None -> scan_base (max_size - 1) s
 
 let scan_next s =
   match State.first s with
-  | None -> s, Token.Eof (State.span_of s s)
+  | None -> s, (Token.Eof, State.span_of s s)
   | Some c when Char.is_digit c -> scan_int s
   | Some c when Char.is_alpha c -> scan_id s
   | Some c when Char.is_whitespace c -> scan_space s
@@ -163,8 +162,8 @@ let scan_next s =
   | _ -> scan_base 3 s
 
 let scan pred src =
-  let cons acc t =
-    if pred t then t :: acc else acc
+  let cons acc (k, s) =
+    if pred k then (k, s) :: acc else acc
   in
   let rec aux acc s =
     let s', t = scan_next s in

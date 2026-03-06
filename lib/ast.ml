@@ -16,16 +16,14 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Thalia
+type expression =
+  | Literal of Span.t * int64
+  | BAdd of Span.t * expression * expression
+  | BSub of Span.t * expression * expression
+  | BMul of Span.t * expression * expression
+  | BDiv of Span.t * expression * expression
+  | BMod of Span.t * expression * expression
+  | USub of Span.t * expression * expression
 
-let filter = function
-  | Token.Space | Token.Comment | Token.Eof -> false
-  | _ -> true
-
-let () =
-  "\n\n    \n// Hello World!\n 4 + 6  \n"
-  |> Lexer.scan filter
-  |> List.map Token.show
-  |> String.concat "\n"
-  |> print_endline
+type t = expression
 

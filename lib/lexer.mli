@@ -16,6 +16,6 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-val scan : (Token.t -> bool) -> string -> Token.t list
+val scan : (Token.kind -> bool) -> string -> Token.t list
 val scan_all : string -> Token.t list
 
