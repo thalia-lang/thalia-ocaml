@@ -64,9 +64,9 @@ module State = struct
     match peek 0 s with
     | None -> s
     | Some '\n' ->
-      { s with offset = s.offset + 1; column = s.column + 1 }
-    | _ ->
       { s with offset = s.offset + 1; line = s.line + 1; column = 1 }
+    | _ ->
+      { s with offset = s.offset + 1; column = s.column + 1 }
 
   module Stream_base = struct
     type value = char
@@ -166,10 +166,9 @@ let scan pred src =
     if pred k then (k, s) :: acc else acc
   in
   let rec aux acc s =
-    let s', t = scan_next s in
-    match State.first s with
-    | None -> List.rev (cons acc t)
-    | _ -> aux (cons acc t) s'
+    match scan_next s with
+    | _, ((Token.Eof, _) as t) -> List.rev (cons acc t)
+    | s', t -> aux (cons acc t) s'
   in
   aux [] (State.make src)
 
