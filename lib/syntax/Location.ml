@@ -1,4 +1,4 @@
-(* Copyright (c) 2025 Stan Vlad <vstan02@protonmail.com>
+(* Copyright (c) 2026 Stan Vlad <vstan02@protonmail.com>
  *
  * This file is part of Thalia.
  *
@@ -16,54 +16,29 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type kind =
-  | Id
-  | Int
-  | Minus
-  | Plus
-  | Mul
-  | Div
-  | Mod
-  | Less
-  | Less_equ
-  | Grt
-  | Grt_equ
-  | Equ
-  | Not_equ
-  | Rshift
-  | Lshift
-  | Log_and
-  | Log_or
-  | Bit_not
-  | Bit_and
-  | Bit_or
-  | Bit_xor
-  | Assign
-  | Assign_sub
-  | Assign_add
-  | Assign_mul
-  | Assign_div
-  | Assign_mod
-  | Assign_and
-  | Assign_or
-  | Assign_xor
-  | Assign_lsh
-  | Assign_rsh
-  | Lparen
-  | Rparen
-  | Lbrace
-  | Rbrace
-  | Lbracket
-  | Rbracket
-  | Comma
-  | Semi
-  | Colon
-  | Space
-  | Comment
-  | Eof
-  | Unknown
-  [@@deriving show]
+type t = {
+  offset : int;
+  line : int;
+  column : int;
+} [@@deriving eq, show { with_path = false }]
 
-type t = kind * Span.t
-[@@deriving show]
+type span = t * t
+  [@@deriving eq, show { with_path = false }]
+
+let make offset line column =
+  { offset; line; column }
+let zero = make 0 1 1
+
+let offset { offset; _ } = offset
+let line { line; _ } = line
+let column { column; _ } = column
+
+let min l1 l2 =
+  if offset l1 < offset l2 then l1 else l2
+let max l1 l2 =
+  if offset l1 > offset l2 then l1 else l2
+
+let next { offset; line; column } = function
+  | true -> make (offset + 1) (line + 1) 1
+  | false -> make (offset + 1) line (column + 1)
 

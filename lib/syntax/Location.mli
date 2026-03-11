@@ -1,4 +1,4 @@
-(* Copyright (c) 2025 Stan Vlad <vstan02@protonmail.com>
+(* Copyright (c) 2026 Stan Vlad <vstan02@protonmail.com>
  *
  * This file is part of Thalia.
  *
@@ -16,24 +16,21 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-module type BASE = sig
-  type value
-  type input
+type t
+  [@@deriving eq, show]
 
-  val peek : int -> input -> value option
-  val rest : input -> input
-end
+type span = t * t
+  [@@deriving eq, show]
 
-module type T = sig
-  include BASE
+val zero : t
+val make : int -> int -> int -> t
 
-  val first : input -> value option
+val offset : t -> int
+val line : t -> int
+val column : t -> int
 
-  val skip : int -> input -> input
-  val skip_while : (value -> bool) -> input -> input
-end
+val min : t -> t -> t
+val max : t -> t -> t
 
-module Make : functor (M : BASE) -> T
-  with type value := M.value
-  with type input := M.input
+val next : t -> bool -> t
 

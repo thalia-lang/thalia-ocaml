@@ -1,0 +1,7 @@
+(include_subdirs qualified)
+
+(executable
+  (public_name thalia)
+  (name Main)
+  (libraries thalia.syntax))
+

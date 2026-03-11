@@ -1,4 +1,4 @@
-(* Copyright (c) 2025 Stan Vlad <vstan02@protonmail.com>
+(* Copyright (c) 2026 Stan Vlad <vstan02@protonmail.com>
  *
  * This file is part of Thalia.
  *
@@ -16,16 +16,8 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Thalia
+type t
+  [@@deriving eq, show]
 
-let filter = function
-  | Token.Space | Token.Comment | Token.Eof -> false
-  | _ -> true
-
-let () =
-  "\n\n    \n// Hello World!\n 4 + 6  \n"
-  |> Lexer.scan filter
-  |> List.map Token.show
-  |> String.concat "\n"
-  |> print_endline
+val make : string -> t
 

@@ -33,7 +33,6 @@ Before building Thalia, ensure you have the following installed:
 ### Required OCaml Packages
 
 - `ppx_deriving` - PPX extension for deriving
-- `ppx_inline_test` - Inline testing support
 
 ### Installing Prerequisites
 
@@ -50,13 +49,13 @@ opam init
 opam switch create 4.14.0
 
 # Install dependencies
-opam install dune ppx_deriving ppx_inline_test
+opam install dune ppx_deriving
 ```
 
 ### Dune Commands Reference
 
-| Command                 | Description                              |
-|------------------------|------------------------------------------|
+| Command              | Description                              |
+|----------------------|------------------------------------------|
 | `dune build`           | Build the project                        |
 | `dune build --release` | Build with optimizations                 |
 | `dune exec thalia`     | Run the thalia executable                |
@@ -99,17 +98,6 @@ dune test
 # Run inline tests
 dune runtest
 ```
-
-### Adding Tests
-
-Inline tests are defined using `ppx_inline_test`:
-
-```ocaml
-let%test _ = Ok [] = zero
-let%test _ = Ok [2] = pure 2
-```
-
-For integration tests, add test files in the `test/` directory with appropriate dune configurations.
 
 ## Usage
 

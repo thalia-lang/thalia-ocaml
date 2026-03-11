@@ -1,4 +1,4 @@
-(* Copyright (c) 2025 Stan Vlad <vstan02@protonmail.com>
+(* Copyright (c) 2026 Stan Vlad <vstan02@protonmail.com>
  *
  * This file is part of Thalia.
  *
@@ -16,14 +16,11 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type expression =
-  | Literal of Span.t * int64
-  | BAdd of Span.t * expression * expression
-  | BSub of Span.t * expression * expression
-  | BMul of Span.t * expression * expression
-  | BDiv of Span.t * expression * expression
-  | BMod of Span.t * expression * expression
-  | USub of Span.t * expression * expression
+type t = {
+  input : string;
+  location: Location.t
+} [@@deriving eq, show { with_path = false }]
 
-type t = expression
+let make input =
+  { input; location = Location.zero }
 
