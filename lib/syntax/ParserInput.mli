@@ -21,10 +21,8 @@ type t
 
 include Stream.T
   with type t := t
-  with type item := char
+  with type item := Token.t
 
-val make : string -> t
-
-val meta_of : t -> t -> Token.meta
-val string_of : t -> t -> string
+val make : Token.t list -> t
+val of_string : string -> t
 

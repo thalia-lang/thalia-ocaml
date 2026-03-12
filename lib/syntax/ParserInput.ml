@@ -16,15 +16,30 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type t
-  [@@deriving eq, show { with_path = false }]
+module T = struct
+  type item = Token.t
+  type t = Token.t list
+    [@@deriving eq, show { with_path = false }]
 
-include Stream.T
-  with type t := t
-  with type item := char
+  let filter = function
+    | Token.Eof _ | Token.Space _ | Token.Comment _ -> false
+    | _ -> false
 
-val make : string -> t
+  let make input =
+    input |> List.filter filter
 
-val meta_of : t -> t -> Token.meta
-val string_of : t -> t -> string
+  let of_string input =
+    input |> Lexer.scan_all |> make
+
+  let first = function
+    | [] -> None
+    | t :: _ -> Some t
+
+  let rest = function
+    | [] -> []
+    | _ :: ts -> ts
+end
+
+include T
+include Stream.Make(T)
 

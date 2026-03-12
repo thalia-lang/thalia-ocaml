@@ -72,3 +72,14 @@ let scan_next s =
   | Some '/' when Input.peek 1 s = Some '/' -> scan_comment s
   | _ -> scan_symbols 3 s
 
+let scan_all input =
+  let rec aux acc s =
+    match scan_next s with
+    | s', None -> aux acc s'
+    | _, Some ((Token.Eof _) as t) -> (t :: acc)
+    | s', Some t -> aux (t :: acc) s'
+  in input |> make |> aux [] |> List.rev
+
+let scan pred input =
+  input |> scan_all |> List.filter pred
+

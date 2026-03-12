@@ -3,6 +3,13 @@
 (library
   (public_name thalia.syntax)
   (name Syntax)
-  (modules Location Stream Token Validated Lexer LexerInput)
-  (preprocess (pps ppx_deriving.eq ppx_deriving.show)))
+  (preprocess
+    (pps ppx_deriving.eq ppx_deriving.show))
+  (modules
+    Location
+    Token
+    Stream
+    Lexer
+    LexerInput
+    ParserInput))
 

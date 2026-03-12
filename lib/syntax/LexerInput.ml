@@ -27,9 +27,6 @@ module T = struct
   let make input =
     { input; location = Location.zero }
 
-  let input { input; _ } = input
-  let location { location; _ } = location
-
   let meta_of s s' =
     Token.make_meta (s.location, s'.location)
 
