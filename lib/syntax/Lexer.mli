@@ -21,3 +21,5 @@ type t
 
 val make : string -> t
 
+val scan_next : t -> t * Token.t option
+

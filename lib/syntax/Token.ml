@@ -67,3 +67,5 @@ type t =
   | Eof of meta
   [@@deriving eq, show { with_path = false }]
 
+let make_meta span = { span }
+

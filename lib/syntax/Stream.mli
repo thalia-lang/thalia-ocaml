@@ -16,18 +16,24 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type t
-  [@@deriving eq, show]
+module type BASE = sig
+  type item
+  type t
 
-type span = t * t
-  [@@deriving eq, show]
+  val first : t -> item option
+  val rest : t -> t
+end
 
-val zero : t
-val make : int -> int -> int -> t
+module type T = sig
+  include BASE
 
-val offset : t -> int
-val line : t -> int
-val column : t -> int
+  val peek : int -> t -> item option
 
-val next : bool -> t -> t
+  val skip : int -> t -> t
+  val skip_while : (item -> bool) -> t -> t
+end
+
+module Make : functor (M : BASE) -> T
+  with type t := M.t
+  with type item := M.item
 

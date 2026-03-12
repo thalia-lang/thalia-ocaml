@@ -16,18 +16,20 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type t
-  [@@deriving eq, show]
+type t = {
+  input : string;
+  location : Location.t
+} [@@deriving eq, show { with_path = false }]
 
-type span = t * t
-  [@@deriving eq, show]
+include Stream.T
+  with type t := t
+  with type item := char
 
-val zero : t
-val make : int -> int -> int -> t
+val make : string -> t
 
-val offset : t -> int
-val line : t -> int
-val column : t -> int
+val input : t -> string
+val location : t -> Location.t
 
-val next : bool -> t -> t
+val meta_of : t -> t -> Token.meta
+val string_of : t -> t -> string
 

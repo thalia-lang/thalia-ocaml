@@ -67,3 +67,5 @@ type t =
   | Eof of meta
   [@@deriving eq, show]
 
+val make_meta : Location.span -> meta
+

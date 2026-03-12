@@ -33,12 +33,9 @@ let offset { offset; _ } = offset
 let line { line; _ } = line
 let column { column; _ } = column
 
-let min l1 l2 =
-  if offset l1 < offset l2 then l1 else l2
-let max l1 l2 =
-  if offset l1 > offset l2 then l1 else l2
-
-let next { offset; line; column } = function
-  | true -> make (offset + 1) (line + 1) 1
-  | false -> make (offset + 1) line (column + 1)
+let next is_eol { offset; line; column } =
+  let l, c = match is_eol with
+    | true -> line + 1, 1
+    | false -> line, column + 1
+  in make (offset + 1) l c
 
