@@ -16,17 +16,20 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Core
+module type BASE = sig
+  include Functor.BASE
 
-module Make (E : sig type t end) (I : sig type t end) = struct
-  module M =  State.Make(I)
-  include Result.MakeT(M)(E)
-
-  let run s m = m s
-  let get =
-    M.pure () |> M.get |> lift
-  let put s =
-    M.pure () |> M.put s |> lift
-  let update f =
-    M.pure () |> M.update f |> lift
+  val pure : 'a -> 'a t
+  val apply : ('a -> 'b) t -> 'a t -> 'b t
 end
+
+module type T = sig
+  include BASE
+  include Functor.T
+    with type 'a t := 'a t
+
+  val ( <*> ) : ('a -> 'b) t -> 'a t -> 'b t
+end
+
+module Make : functor (M : BASE) -> T
+  with type 'a t := 'a M.t

@@ -16,17 +16,34 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Core
+module type T = sig
+  type input
+  include Monad.T
+    with type 'a t = (input -> input * 'a)
 
-module Make (E : sig type t end) (I : sig type t end) = struct
-  module M =  State.Make(I)
-  include Result.MakeT(M)(E)
+  val run : input -> 'a t -> input * 'a
 
-  let run s m = m s
-  let get =
-    M.pure () |> M.get |> lift
-  let put s =
-    M.pure () |> M.put s |> lift
-  let update f =
-    M.pure () |> M.update f |> lift
+  val get : 'a t -> input t
+  val put : input -> 'a t -> unit t
+  val update : (input -> input) -> 'a t -> unit t
+end
+
+module Make (I : sig type t end) = struct
+  module T = struct
+    type 'a t = I.t -> I.t * 'a
+
+    let return v s =
+      s, v
+    let bind m f s =
+      let s', v = m s in
+      f v s'
+
+    let run s m = m s
+    let get _ s = s, s
+    let put s _ _ = s, ()
+    let update f _ s = f s, ()
+  end
+
+  include T
+  include Monad.Make(T)
 end

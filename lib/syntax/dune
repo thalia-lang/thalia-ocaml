@@ -5,11 +5,5 @@
   (name Syntax)
   (preprocess
     (pps ppx_deriving.eq ppx_deriving.show))
-  (modules
-    Location
-    Token
-    Stream
-    Lexer
-    LexerInput
-    ParserInput))
-
+  (modules Location Span Report Context Trivia Token Stream Lexer)
+  (libraries Core))

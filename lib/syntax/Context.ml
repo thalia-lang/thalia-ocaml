@@ -16,15 +16,9 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type t
-  [@@deriving eq, show { with_path = false }]
+type t = {
+  path : string;
+  content : string
+} [@@deriving eq, show { with_path = false }]
 
-include Stream.T
-  with type t := t
-  with type item := char
-
-val make : string -> t
-
-val meta_of : t -> t -> Token.meta
-val string_of : t -> t -> string
-
+let make path content = { path; content }

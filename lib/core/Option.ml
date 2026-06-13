@@ -16,6 +16,41 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-val scan : (Token.t -> bool) -> string -> Token.t list
-val scan_all : string -> Token.t list
+module type T = sig
+  type 'a outer
+  include Monad.T
+    with type 'a t = 'a option outer
 
+  val some : 'a -> 'a t
+  val none : unit -> 'a t
+  val lift : 'a outer -> 'a t
+end
+
+module MakeT (M : Monad.T) = struct
+  module Base = struct
+    type 'a t = 'a option M.t
+
+    let some v =
+      let open M in
+      Some v |> pure
+
+    let none () =
+      let open M in
+      None |> pure
+
+    let return = some
+    let bind mx f =
+      let open M in
+      mx >>= function
+        | None -> none ()
+        | Some v -> f v
+
+    let lift mx =
+      M.bind mx return
+  end
+
+  include Base
+  include Monad.Make (Base)
+end
+
+include MakeT (Monad.Id)

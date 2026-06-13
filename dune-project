@@ -12,4 +12,3 @@
  (synopsis "Thalia programming language")
  (description "Thalia is a procedural programming language designed to be fast, statically typed, and suitable for general-purpose applications.")
  (depends ocaml dune ppx_deriving))
-

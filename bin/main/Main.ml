@@ -16,9 +16,15 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Syntax
+open Core.Prelude
+open Core.IO
+open Core.Result.MakeT(Core.IO)(String)
 
-let _ = Location.make 0 1 1
-  |> Location.show
-  |> print_endline
+let main n = n
+  >|= ( + ) 1 >|= ( * ) 2
+  >|= string_of_int >>= (lift << println)
 
+let _ = ok 1
+  |> main |> run
+  |> (function Ok _ -> 0 | Error _ -> 1)
+  |> exit

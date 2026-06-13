@@ -3,5 +3,4 @@
 (executable
   (public_name thalia)
   (name Main)
-  (libraries thalia.syntax))
-
+  (libraries thalia.core))

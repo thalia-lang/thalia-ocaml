@@ -1,0 +1,11 @@
+(include_subdirs qualified)
+
+(library
+  (public_name thalia.core)
+  (name Core)
+  (preprocess
+    (pps ppx_deriving.eq ppx_deriving.show))
+  (modules
+    Prelude
+    Functor Applicative Alternative Monoid Monad
+    IO Option Result State))

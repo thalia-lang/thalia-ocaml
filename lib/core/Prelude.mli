@@ -16,17 +16,10 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Core
+val id : 'a -> 'a
+val const : 'a -> 'b -> 'a
 
-module Make (E : sig type t end) (I : sig type t end) = struct
-  module M =  State.Make(I)
-  include Result.MakeT(M)(E)
+val flip : ('a -> 'b -> 'c) -> ('b -> 'a -> 'c)
 
-  let run s m = m s
-  let get =
-    M.pure () |> M.get |> lift
-  let put s =
-    M.pure () |> M.put s |> lift
-  let update f =
-    M.pure () |> M.update f |> lift
-end
+val ( >> ) : ('a -> 'b) -> ('b -> 'c) -> ('a -> 'c)
+val ( << ) : ('b -> 'c) -> ('a -> 'b) -> ('a -> 'c)

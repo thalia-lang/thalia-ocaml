@@ -16,18 +16,21 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type t
-  [@@deriving eq, show]
+module type BASE = sig
+  type 'a t
 
-type span = t * t
-  [@@deriving eq, show]
+  val map : ('a -> 'b) -> 'a t -> 'b t
+end
 
-val zero : t
-val make : int -> int -> int -> t
+module type T = sig
+  include BASE
 
-val offset : t -> int
-val line : t -> int
-val column : t -> int
+  val ( let+ ) : 'a t -> ('a -> 'b) -> 'b t
+  val ( >|= ) : 'a t -> ('a -> 'b) -> 'b t
+end
 
-val next : bool -> t -> t
-
+module Make (M : BASE) = struct
+  include M
+  let ( let+ ) m f = map f m
+  let ( >|= ) m f = map f m
+end

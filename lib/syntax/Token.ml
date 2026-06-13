@@ -16,56 +16,36 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type meta = {
-  span: Location.span
-} [@@deriving eq, show { with_path = false }]
+type kind =
+  (* Specials *)
+  | Eof
+  | Unknown
 
-type t =
-  | Id of meta * string
-  | Int of meta * int
-  | Minus of meta
-  | Plus of meta
-  | Mul of meta
-  | Div of meta
-  | Mod of meta
-  | Less of meta
-  | Less_equ of meta
-  | Grt of meta
-  | Grt_equ of meta
-  | Equ of meta
-  | Not_equ of meta
-  | Rshift of meta
-  | Lshift of meta
-  | Log_and of meta
-  | Log_or of meta
-  | Bit_not of meta
-  | Bit_and of meta
-  | Bit_or of meta
-  | Bit_xor of meta
-  | Assign of meta
-  | Assign_sub of meta
-  | Assign_add of meta
-  | Assign_mul of meta
-  | Assign_div of meta
-  | Assign_mod of meta
-  | Assign_and of meta
-  | Assign_or of meta
-  | Assign_xor of meta
-  | Assign_lsh of meta
-  | Assign_rsh of meta
-  | Lparen of meta
-  | Rparen of meta
-  | Lbrace of meta
-  | Rbrace of meta
-  | Lbracket of meta
-  | Rbracket of meta
-  | Comma of meta
-  | Semi of meta
-  | Colon of meta
-  | Space of meta
-  | Comment of meta
-  | Eof of meta
+  (* Literals *)
+  | LInt
+
+  (* Identicators *)
+  | ISnake
+  | IPascal
+
+  (* Types *)
+  | TUnit
+  | TInt
+
+  (* Keywords *)
+  | KType
+
+  (* Punctuation *)
+  | Eq
+  | Colon
+  | ColonEq
+  | SRArrow
+  | Semi
+  | Comma
+  | Pipe
+  | RParen
+  | LParen
   [@@deriving eq, show { with_path = false }]
 
-let make_meta span = { span }
-
+type 'a t = kind * 'a
+  [@@deriving eq, show { with_path = false }]

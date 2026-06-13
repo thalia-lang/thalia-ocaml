@@ -16,13 +16,23 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type t
-  [@@deriving eq, show { with_path = false }]
+module type BASE = sig
+  include Functor.BASE
 
-include Stream.T
-  with type t := t
-  with type item := Token.t
+  val pure : 'a -> 'a t
+  val apply : ('a -> 'b) t -> 'a t -> 'b t
+end
 
-val make : Token.t list -> t
-val of_string : string -> t
+module type T = sig
+  include BASE
+  include Functor.T
+    with type 'a t := 'a t
 
+  val ( <*> ) : ('a -> 'b) t -> 'a t -> 'b t
+end
+
+module Make (M : BASE) = struct
+  include M
+  let ( <*> ) = apply
+  include Functor.Make (M)
+end

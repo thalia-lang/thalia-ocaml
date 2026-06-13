@@ -16,24 +16,22 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-module type BASE = sig
-  type item
-  type t
+type 'a t = unit -> 'a
 
-  val first : t -> item option
-  val rest : t -> t
-end
+include Monad.T
+  with type 'a t := 'a t
 
-module type T = sig
-  include BASE
+val run : 'a t -> 'a
 
-  val peek : int -> t -> item option
+val print : string -> unit t
+val println : string -> unit t
 
-  val skip : int -> t -> t
-  val skip_while : (item -> bool) -> t -> t
-end
+val eprint : string -> unit t
+val eprintln : string -> unit t
 
-module Make : functor (M : BASE) -> T
-  with type t := M.t
-  with type item := M.item
+val with_file_in : string -> (in_channel -> 'a t) -> 'a t
+val with_file_out : string -> (out_channel -> 'a t) -> 'a t
 
+val fread : string -> string t
+val fwrite : string -> string -> unit t
+val fappend : string -> string -> unit t

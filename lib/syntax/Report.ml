@@ -16,17 +16,22 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Core
+type kind =
+  | Error
+  | Warning
+  | Note
+  [@@deriving eq, show { with_path = false }]
 
-module Make (E : sig type t end) (I : sig type t end) = struct
-  module M =  State.Make(I)
-  include Result.MakeT(M)(E)
+type t = {
+  kind : kind;
+  message : string;
+  span : Span.t;
+  hints : string list;
+} [@@deriving eq, show { with_path = false }]
 
-  let run s m = m s
-  let get =
-    M.pure () |> M.get |> lift
-  let put s =
-    M.pure () |> M.put s |> lift
-  let update f =
-    M.pure () |> M.update f |> lift
-end
+let make ?(hints = []) kind message span =
+  { kind; message; span; hints }
+
+let error = make Error
+let warning = make Warning
+let note = make Note

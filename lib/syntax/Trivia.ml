@@ -16,17 +16,10 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Core
+type kind =
+  | Blank
+  | Comment
+  [@@deriving eq, show { with_path = false }]
 
-module Make (E : sig type t end) (I : sig type t end) = struct
-  module M =  State.Make(I)
-  include Result.MakeT(M)(E)
-
-  let run s m = m s
-  let get =
-    M.pure () |> M.get |> lift
-  let put s =
-    M.pure () |> M.put s |> lift
-  let update f =
-    M.pure () |> M.update f |> lift
-end
+type 'a t = kind * 'a
+  [@@deriving eq, show { with_path = false }]

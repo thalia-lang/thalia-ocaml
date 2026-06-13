@@ -16,17 +16,42 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Core
+module type T = sig
+  type error
+  type 'a outer
+  include Monad.T
+    with type 'a t = ('a, error) result outer
 
-module Make (E : sig type t end) (I : sig type t end) = struct
-  module M =  State.Make(I)
-  include Result.MakeT(M)(E)
-
-  let run s m = m s
-  let get =
-    M.pure () |> M.get |> lift
-  let put s =
-    M.pure () |> M.put s |> lift
-  let update f =
-    M.pure () |> M.update f |> lift
+  val ok : 'a -> 'a t
+  val error : error -> 'a t
+  val lift : 'a outer -> 'a t
 end
+
+module MakeT (M : Monad.T) (E : sig type t end) = struct
+  module T = struct
+    type 'a t = ('a, E.t) result M.t
+
+    let ok v =
+      let open M in
+      Ok v |> pure
+
+    let error e =
+      let open M in
+      Error e |> pure
+
+    let return = ok
+    let bind mx f =
+      let open M in
+      mx >>= function
+        | Error e -> error e
+        | Ok v -> f v
+
+    let lift mx =
+      M.bind mx return
+  end
+
+  include T
+  include Monad.Make(T)
+end
+
+module Make = MakeT (Monad.Id)

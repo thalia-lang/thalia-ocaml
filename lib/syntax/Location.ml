@@ -16,26 +16,18 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-type t = {
-  offset : int;
-  line : int;
-  column : int;
-} [@@deriving eq, show { with_path = false }]
-
-type span = t * t
+type t = int * int * int
   [@@deriving eq, show { with_path = false }]
 
 let make offset line column =
-  { offset; line; column }
-let zero = make 0 1 1
+  offset, line, column
+let default = 0, 1, 1
 
-let offset { offset; _ } = offset
-let line { line; _ } = line
-let column { column; _ } = column
+let offset (offset, _, _) = offset
+let line (_, line, _) = line
+let column (_, _, column) = column
 
-let next is_eol { offset; line; column } =
-  let l, c = match is_eol with
-    | true -> line + 1, 1
-    | false -> line, column + 1
-  in make (offset + 1) l c
-
+let next ?(is_eol = false) (offset, line, column) =
+  if is_eol
+    then (offset + 1), (line + 1), 1
+  else (offset + 1), line, (column + 1)

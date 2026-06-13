@@ -16,30 +16,18 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-module T = struct
-  type item = Token.t
-  type t = Token.t list
-    [@@deriving eq, show { with_path = false }]
+module type BASE = sig
+  type 'a t
 
-  let filter = function
-    | Token.Eof _ | Token.Space _ | Token.Comment _ -> false
-    | _ -> false
-
-  let make input =
-    input |> List.filter filter
-
-  let of_string input =
-    input |> Lexer.scan_all |> make
-
-  let first = function
-    | [] -> None
-    | t :: _ -> Some t
-
-  let rest = function
-    | [] -> []
-    | _ :: ts -> ts
+  val map : ('a -> 'b) -> 'a t -> 'b t
 end
 
-include T
-include Stream.Make(T)
+module type T = sig
+  include BASE
 
+  val ( let+ ) : 'a t -> ('a -> 'b) -> 'b t
+  val ( >|= ) : 'a t -> ('a -> 'b) -> 'b t
+end
+
+module Make : functor (M : BASE) -> T
+  with type 'a t := 'a M.t
