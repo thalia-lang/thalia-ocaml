@@ -16,29 +16,31 @@
  * along with this program. if not, see <https://www.gnu.org/licenses/>.
  *)
 
-open Core.Prelude
+open Core
 
-module type BASE = sig
-  type t
-  type item
+module Make (E : sig type t end) (I : Stream.BASE) = struct
+  module I' = Stream.Make (I)
+  module M = State.Make (I')
+  include Result.MakeT (M) (E)
 
-  val first : t -> item option
-  val rest : t -> t
-end
+  let run s m = m s
 
-module Make (M : BASE) = struct
-  include M
+  let get =
+    M.pure () |> M.get |> lift
+  let put s =
+    M.pure () |> M.put s |> lift
+  let update f =
+    M.pure () |> M.update f |> lift
 
-  let rec peek = function
-    | 0 -> first
-    | n -> rest >> peek (n - 1)
+  let first =
+    get >|= I'.first
+  let rest =
+    get >|= I'.rest
 
-  let rec skip = function
-    | 0 -> id
-    | n -> rest >> skip (n - 1)
-
-  let skip_while pred input =
-    match first input with
-    | Some x when pred x -> rest input
-    | _ -> input
+  let peek index =
+    get >|= I'.peek index
+  let skip size =
+    get >|= I'.skip size
+  let skip_while pred =
+    get >|= I'.skip_while pred
 end

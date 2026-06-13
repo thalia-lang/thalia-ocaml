@@ -33,6 +33,7 @@ module Error = struct
 end
 
 module State = struct
+  type item = char
   type t = {
     input : string;
     location : Location.t
@@ -41,38 +42,23 @@ module State = struct
   let make input =
     { input; location = Location.default }
 
-  let peek ?(offset = 0) { input; location } =
-    let index = offset + Location.offset location in
+  let span_of s s' =
+    Span.make s.location s'.location
+
+  let first { input; location } =
+    let index = Location.offset location in
     if index >= String.length input
       then None else Some input.[index]
 
-  let rec skip ?(size = 1) s =
-    match size, peek s with
-    | _, None | 0, Some _ -> s
-    | _, Some c ->
-      skip ~size:(size - 1)
-        { s with
-          location = Location.next ~is_eol:(c == '\n') s.location }
-
-  let skip_while pred s =
-    match peek s with
-    | Some c when pred c -> skip s
-    | _ -> s
-
-  let span_of s s' =
-    Span.make s.location s'.location
+  let rest s =
+    match first s with
+    | None -> s
+    | Some c ->
+      { s with
+        location = Location.next ~is_eol:(c == '\n') s.location }
 end
 
-include Stream.Make
-  (struct type t = Error.t end)
-  (struct type t = State.t end)
-
-let peek ?(offset = 0) () =
-  get >|= State.peek ~offset
-let skip ?(size = 1) () =
-  get >|= State.skip ~size
-let skip_while pred =
-  get >|= State.skip_while pred
+include Scanner.Make (Error) (State)
 
 let scan_blank =
   let* s = get in
@@ -85,8 +71,8 @@ let scan_comment =
   Trivia.Comment, State.span_of s s'
 
 let rec scan_trivias acc =
-  let* c = peek () in
-  let* c' = peek ~offset:1 () in
+  let* c = peek 0 in
+  let* c' = peek 1 in
   match c with
   | Some c when Ascii.is_white c ->
     scan_blank >>=
